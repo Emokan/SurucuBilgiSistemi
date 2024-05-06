@@ -32,22 +32,22 @@ def silme():
     # FROM person
     # INNER JOIN company ON person.company_id = company.id
     # WHERE company.id = 1;
+def eklenirse():
+            new_win.destroy()
+            
+            ttk.Label(win, text= "Yeni Eklenenler(Uygulamayi tekrar açtiginizda listeye eklenecekler):", style="BW.TLabel").place(x=550,y=60)
+            
+            ttk.Label(win, text = "Ad ", style="BW.TLabel").place(x=550,y=80)
+            ttk.Label(win, text= "Soyad", style="BW.TLabel").place(x=640,y=80)
+            ttk.Label(win, text = "Sürücü Kodu", style="BW.TLabel").place(x=740,y=80)
 
-def close(window):
-    window.destroy()
-    
-    ttk.Label(win, text= "Yeni Eklenenler(Uygulamayi tekrar açtiginizda listeye eklenecekler):", style="BW.TLabel").place(x=550,y=60)
-    
-    ttk.Label(win, text = "Ad ", style="BW.TLabel").place(x=550,y=80)
-    ttk.Label(win, text= "Soyad", style="BW.TLabel").place(x=640,y=80)
-    ttk.Label(win, text = "Sürücü Kodu", style="BW.TLabel").place(x=740,y=80)
+            ttk.Label(win, text = "#################################", style="BW.TLabel").place(x=550,y=100)
 
-    ttk.Label(win, text = "#################################", style="BW.TLabel").place(x=550,y=100)
+            
+            ttk.Label(win, text = ""+isim.get()+"", style="BW.TLabel").place(x=550,y=ypos)
+            ttk.Label(win, text = ""+soyisim.get()+"", style="BW.TLabel").place(x=640,y=ypos)
+            ttk.Label(win, text = ""+şoförkod.get()+"", style="BW.TLabel").place(x=740,y=ypos)
 
-    
-    ttk.Label(win, text = ""+isim.get()+"", style="BW.TLabel").place(x=550,y=ypos)
-    ttk.Label(win, text = ""+soyisim.get()+"", style="BW.TLabel").place(x=640,y=ypos)
-    ttk.Label(win, text = ""+şoförkod.get()+"", style="BW.TLabel").place(x=740,y=ypos)
 
        
 
@@ -62,7 +62,7 @@ def close2(sil_win):
 
     ttk.Label(win, text = "#################################", style="BW.TLabel").place(x=550,y=540)
 
-    ttk.Label(win, text = ""+silinecekkod.get()+" No lu sürücü listeden kaldirilacaktir .", style="BW.TLabel").place(x=550,y=y2pos)
+    ttk.Label(win, text = ""+silinecekkod.get()+" No lu sürücü veya sürücüler listeden kaldirilacaktir .", style="BW.TLabel").place(x=550,y=y2pos)
     
 # def close3(win):
 #      win.destroy()
@@ -71,21 +71,25 @@ def close2(sil_win):
 #     python = sys.executable
 #     os.execl(python, python, * sys.argv)
 
-def formukaydet(new_win):
-        global kod
-        kod = şoförkod.get()
-        cur.execute(" Select kod from sofor ")
-        result = cur.fetchall()
-        length = len(result)
-        
-        for i in range(length):
-                if kod == result[i][0]:
-                    errortab(kod)
-                else: 
-                    cur.execute('insert into sofor (kod,ad,soyad) values (?,?,?)',(şoförkod.get(),isim.get(),soyisim.get()))
-                     
-                
+def formukaydet():
+    kod = şoförkod.get()
+    cur.execute("SELECT kod FROM sofor")
+    result = cur.fetchall()
+
+    # Check if the entered driver code already exists in the database
+    if any(kod == row[0] for row in result):
+        # If the driver code already exists, display an error window
+        errortab(kod)
+    else:
+        # If the driver code is unique, add the new driver information to the database
+        cur.execute('INSERT INTO sofor (kod, ad, soyad) VALUES (?, ?, ?)', (şoförkod.get(), isim.get(), soyisim.get()))
         con.commit()
+        eklenirse()
+
+        
+            
+
+
 
 def errortab(kod):
     error_win = Toplevel(win)
@@ -93,9 +97,20 @@ def errortab(kod):
     error_win.title("HATA!")
 
     ttk.Label(error_win, text=""+(kod)+" Numarali Kullanici Zaten Bulunuyor! Tekrar Deneyiniz.").place(x=20, y=20)
-     
+
+#Sofor No Kısmına Sadece Entry girmek için deneme.     
+# def validate_input(text):
+#     # Girilen metnin integer olup olmadığını kontrol et
+#     if text.isdigit():
+#         return True
+#     else:
+#         # Girilen metin integer değilse, kullanıcıya uyarı göster ve False döndür
+#         ttk.Label(new_win, text=("Lütfen sadece rakam giriniz!").place(x=50,y=140))
+#         return False
+
            
 def yenibilgigir():
+    global new_win
     global isim, soyisim, şoförkod, ypos
     ypos = ypos + 20
     
@@ -115,9 +130,9 @@ def yenibilgigir():
     ttk.Entry(new_win, font=("Arial"), textvariable=soyisim).place(x=20, y=90)
 
     ttk.Label(new_win, text="Şoför Kodu : ").place(x=20,y=120)
-    ttk.Entry(new_win, font=("Arial"),textvariable=şoförkod).place(x=20,y=140)
+    ttk.Entry(new_win, font=("Arial"),textvariable=şoförkod).place(x=60,y=120)
 
-    kaydet = ttk.Button(new_win, text="Kaydet", width=7, command=lambda: [formukaydet(new_win), close(new_win)])
+    kaydet = ttk.Button(new_win, text="Kaydet", width=7, command=lambda: [formukaydet()])
     kaydet.place(x=620, y=460)
 
 con = sqlite3.connect('C:\\Users\\emirh\\Masaüstü\\PY\\Py3\\Takip.db')
